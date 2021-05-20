@@ -385,7 +385,7 @@ def NC_InfoInit(Frame):
 
     samp_na = Label(Frame, text = 'Sample name')
     samp_na.grid(row=0,column=0)
-    samp_e = Entry(Frame,width=10,borderwidth=2)
+    samp_e = Entry(Frame,width=20,borderwidth=2)
     #samp_e.insert(END, 'Lambdatype-S1_')
     samp_e.insert(END, 'MAPI_c-axis')
     samp_e.grid(row=1,column=0)
@@ -395,7 +395,7 @@ def NC_InfoInit(Frame):
     len_na.grid(row=0,column=1)
     len_e = Entry(Frame,width=10,borderwidth=2)
     #len_e.insert(END, '20')
-    len_e.insert(END, '2300')
+    len_e.insert(END, '2000')
     len_e.grid(row=1,column=1)
     setattr(sample,'length_entry',len_e)
 
@@ -403,7 +403,7 @@ def NC_InfoInit(Frame):
     wid_na.grid(row=0,column=2)
     wid_e = Entry(Frame,width=10,borderwidth=2)
     #wid_e.insert(END, '100')
-    wid_e.insert(END, '900')
+    wid_e.insert(END, '800')
     wid_e.grid(row=1,column=2)
     setattr(sample,'width_entry',wid_e)
 
@@ -411,16 +411,31 @@ def NC_InfoInit(Frame):
     thic_na.grid(row=0,column=3)
     thic_e = Entry(Frame,width=10,borderwidth=2)
     #thic_e.insert(END, '100')
-    thic_e.insert(END, '800')
+    thic_e.insert(END, '1500')
     thic_e.grid(row=1,column=3)
     setattr(sample,'thickness_entry',thic_e)
 
     cm_na = Label(Frame, text = 'Comment?')
-    cm_na.grid(row=2,column=0)
-    cm_e = Entry(Frame,width=10,borderwidth=2)
+    cm_na.grid(row=0,column=5)
+    cm_e = Entry(Frame,width=20,borderwidth=2)
     cm_e.insert(END, '')
-    cm_e.grid(row=3,column=0,rowspan=5)
+    cm_e.grid(row=1,column=5,rowspan=1)
     setattr(sample,'cm_entry',cm_e)
+    
+    def selectdir():
+        #global directory
+        filedirectory = filedialog.askdirectory()
+        fd_e.delete(0, 'end')
+        fd_e.insert(END, filedirectory)
+    
+    fd_na = Label(Frame, text = 'File directory:')
+    fd_na.grid(row=3,column=0)
+    fd_e = Entry(Frame,width=100,borderwidth=2)
+    fd_e.insert(END, current_path)
+    fd_e.grid(row=4,column=0,columnspan=10)
+    setattr(sample,'fd_entry',fd_e)
+    fd_bn = Button(Frame, text = "Select", command=selectdir)
+    fd_bn.grid(row=3,column=1)
 			
 def NC_MeaEntriesInit(Frame):
     global NCvars,start_freq,end_freq,no_pts,logarithmic_mode,ACvolt,DCbias,DCvolt,wiremode,para_to_show
@@ -550,154 +565,6 @@ def NC_CompenEntriesInit(Frame):
     shortmode_eh.grid(row=1,column=1)
     setattr(CP,'short_entry',shortmode_e)
 	
-def Data_compensation_old(R_raw, X_raw):
-
-    def find_closest(array, value):
-        array = np.asarray(array)
-        idx = (np.abs(array - value)).argmin()
-        return [array[idx],idx]
-
-
-
-    compen_dir = r'\\S4\Datenpool\Yuk Tai\Data and Analysis\Compensation'
-    t = nowtemp.value
-    f = NC.ACfreq
-        
-    if CP.open_entry.get() == 'None':
-        G_o = 0
-        B_o = 0
-    elif CP.open_entry.get() == 'DAC':
-        opendirname = os.path.join(compen_dir,'DAC_Opencompensation 20210426')
-        openfilepath = os.path.join(opendirname,'2021-04-26_DAC_opencompen_1.0V_295K.txt')	#only 1 file now
-        header = np.genfromtxt(openfilepath,delimiter='\t',dtype=str)[0]
-        header = np.char.strip(header)
-        Freqcol_ind = np.where(header=='Freq')[0][0]
-        Gcol_ind = np.where(header=='G_raw')[0][0]
-        Bcol_ind = np.where(header=='B_raw')[0][0]
-        content = np.genfromtxt(openfilepath,delimiter='\t',dtype=float)[3:]  #[1:]: skip header,unit,comment
-        Freq_open = np.hsplit(content,len(header))[Freqcol_ind]          
-        G_open = np.hsplit(content,len(header))[Gcol_ind]
-        B_open = np.hsplit(content,len(header))[Bcol_ind]
-        clos_freq_idx = find_closest(Freq_open,f)[1]
-        G_o = G_open[clos_freq_idx]
-        B_o = B_open[clos_freq_idx]
-        
-    elif CP.open_entry.get() == 'DAC+MAGNO':
-        opendirname = os.path.join(compen_dir,'DAC+MAGNO_Opencompensation 20210415')
-        compen_tlist = [294,290,280,260,240,220,200,180,160,140,120,100,80,60,50,40,30,25]
-        compentemp = find_closest(compen_tlist,t)[0];
-        compenfilename = 'DAC+MAGNO_' + str(compentemp) + 'K.txt'
-        openfilepath = os.path.join(opendirname,compenfilename)
-        
-        header = np.genfromtxt(openfilepath,delimiter='\t',dtype=str)[0]
-        header = np.char.strip(header)
-        Freqcol_ind = np.where(header=='Freq')[0][0]
-        Gcol_ind = np.where(header=='G_raw')[0][0]
-        Bcol_ind = np.where(header=='B_raw')[0][0]
-        content = np.genfromtxt(openfilepath,delimiter='\t',dtype=float)[3:]  #[1:]: skip header,unit,comment
-        Freq_open = np.hsplit(content,len(header))[Freqcol_ind]          
-        G_open = np.hsplit(content,len(header))[Gcol_ind]
-        B_open = np.hsplit(content,len(header))[Bcol_ind]
-        clos_freq_idx = find_closest(Freq_open,f)[1]
-        G_o = G_open[clos_freq_idx]
-        B_o = B_open[clos_freq_idx]
-        
-    elif CP.open_entry.get() == 'MAGNO':
-        opendirname = os.path.join(compen_dir,'MAGNO_Opencompensation 20210506')
-        compen_tlist = [295,280,260,240,220,200,180,160,140,100,60,40,20,15]
-        compentemp = find_closest(compen_tlist,t)[0];
-        compenfilename = 'MAGNO_opencompen_1.0V_' + str(compentemp) + 'K.txt'
-        openfilepath = os.path.join(opendirname,compenfilename)
-        
-        header = np.genfromtxt(openfilepath,delimiter='\t',dtype=str)[0]
-        header = np.char.strip(header)
-        Freqcol_ind = np.where(header=='Freq')[0][0]
-        Gcol_ind = np.where(header=='G_raw')[0][0]
-        Bcol_ind = np.where(header=='B_raw')[0][0]
-        
-        content = np.genfromtxt(openfilepath,delimiter='\t',dtype=float)[3:]  #[1:]: skip header,unit,comment
-        Freq_open = np.hsplit(content,len(header))[Freqcol_ind]          
-        G_open = np.hsplit(content,len(header))[Gcol_ind]
-        B_open = np.hsplit(content,len(header))[Bcol_ind]
-        clos_freq_idx = find_closest(Freq_open,f)[1]
-        G_o = G_open[clos_freq_idx]
-        B_o = B_open[clos_freq_idx]
-        
-        
-        
-
-    elif CP.open_entry.get() == 'Ambient' or 'Novo':
-        #print("OP is in")
-        if CP.open_entry.get() == 'Ambient':
-            opendirname = os.path.join(compen_dir,'Amb_Opencompensation')  
-            AmbO_tlist = np.arange(118,dtype=int)*(2.5)+7.5
-            closest_temp,idx = find_closest(AmbO_tlist,t)
-            
-        elif CP.open_entry.get() == 'Novo':
-            opendirname = os.path.join(compen_dir,'Novo_4K_Opencompensation')
-            NovoO_tlist = np.arange((300/5),dtype=int)*(5)+5
-            closest_temp,idx = find_closest(NovoO_tlist,t)
-            
-        closest_temp_str = str(closest_temp) + ' K.txt'
-        openfilepath = os.path.join(opendirname,closest_temp_str)
-        content = np.genfromtxt(openfilepath,delimiter='\t',dtype=float)[1:]  #[1:]: skip header
-        Freq_open = np.hsplit(content,6)[0]          #content has a sixth column filled with 'nan'
-        G_open = np.hsplit(content,6)[2]
-        B_open = np.hsplit(content,6)[3]            
-        clos_freq_idx = find_closest(Freq_open,f)[1]
-        G_o = G_open[clos_freq_idx]
-        B_o = B_open[clos_freq_idx]
-
-    ############Short compensation##########
-    if CP.short_entry.get() == 'None':
-        R_s = 0
-        X_s = 0
-    elif CP.short_entry.get() == 'DAC':
-        shortdirname = os.path.join(compen_dir,'DAC_Shortcompensation 20210427')
-        shortfilepath = os.path.join(shortdirname,'2021-04-27_DAC_shortcompen_1.0V_295K.txt')	#only 1 file now
-        header = np.genfromtxt(shortfilepath,delimiter='\t',dtype=str)[0]
-        header = np.char.strip(header)
-        Freqcol_ind = np.where(header=='Freq')[0][0]
-        Gcol_ind = np.where(header=='G')[0][0]
-        Bcol_ind = np.where(header=='B')[0][0]
-        content = np.genfromtxt(shortfilepath,delimiter='\t',dtype=float)[3:]  #[1:]: skip header,unit,comment
-        Freq_short = np.hsplit(content,len(header))[Freqcol_ind]          
-        G_short = np.hsplit(content,len(header))[Gcol_ind]
-        B_short = np.hsplit(content,len(header))[Bcol_ind]
-        clos_freq_idx = find_closest(Freq_short,f)[1]
-        G_s = G_short[clos_freq_idx]
-        B_s = B_short[clos_freq_idx]
-        
-        R_s = G_s/((G_s**2) + (B_s**2))
-        X_s = -B_s/((G_s**2) + (B_s**2))
-    elif CP.short_entry.get() == 'Ambient':
-        shortdirname = os.path.join(compen_dir,'Amb_Shortcompensation')  
-        AmbS_tlist = np.arange(118,dtype=int)*(2.5)+7.5
-        closest_temp,idx = find_closest(AmbS_tlist,t)
-            
-        closest_temp_str = str(closest_temp) + ' K.txt'
-        shortfilepath = os.path.join(shortdirname,closest_temp_str)
-        content = np.genfromtxt(shortfilepath,delimiter='\t',dtype=float)[1:]  #[1:]: skip header
-        Freq_short = np.hsplit(content,6)[0]          #content has a sixth column filled with 'nan'
-        G_short = np.hsplit(content,6)[2]
-        B_short = np.hsplit(content,6)[3]
-        clos_freq_idx = find_closest(Freq_short,f)[1]
-        
-        G_s = G_short[clos_freq_idx]
-        B_s = B_short[clos_freq_idx]
-        
-        R_s = G_s/((G_s**2) + (B_s**2))
-        X_s = -B_s/((G_s**2) + (B_s**2))
-
-
-
-    nominator = (1-G_o*(R_raw-R_s)+B_o*(X_raw-X_s))**2+(G_o*(X_raw-X_s)+B_o*(R_raw-R_s))**2
-    R = ((R_raw-R_s)*(1-G_o*(R_raw-R_s)+B_o*(X_raw-X_s))-(X_raw-X_s)*(G_o*(X_raw-X_s)+B_o*(R_raw-R_s)))/nominator;
-    X = ((X_raw-X_s)*(1-G_o*(R_raw-R_s)+B_o*(X_raw-X_s))+(R_raw-R_s)*(G_o*(X_raw-X_s)+B_o*(R_raw-R_s)))/nominator
-
-    return [R,X]
-
-
 
 def Data_compensation(R_raw, X_raw):
 
@@ -1036,7 +903,8 @@ def NC_savedata(**kwargs):
             while os.path.exists(fname+'.txt'):
                 fname = fname_prefix + '-%03d'%i
                 i += 1
-            fpath = os.path.join(current_path,fname)
+            #fpath = os.path.join(current_path,fname)
+            fpath = os.path.join(sample.fd_entry.get(),fname)
             f = open(fpath+'.txt','w')
             #f = open(fname+'.txt','w')			#Sometimes, without specifying fullpath, file is located in where Python is installed, so permission might be denied
             np.savetxt(f, header_row, fmt='%5s' ,delimiter='\t',comments='')
@@ -1054,10 +922,11 @@ def NC_savedata(**kwargs):
             
         fname_prefix = fname
         i = 1
-        fpath = os.path.join(current_path,fname)
+        #fpath = os.path.join(current_path,fname)
+        fpath = os.path.join(sample.fd_entry.get(),fname)
         while os.path.exists(fpath+'.txt'):
             fname = fname_prefix + '-%03d'%i
-            fpath = os.path.join(current_path,fname)
+            fpath = os.path.join(sample.fd_entry.get(),fname)
             i += 1
         f = open(fpath+'.txt','w')
         np.savetxt(f, header_row, fmt='%5s' ,delimiter='\t',comments='')
@@ -1112,7 +981,9 @@ def NC_savedata_Continuous(**kwargs):
                     newDataRow = np.expand_dims(newDataRow,axis=0)
                     
             fname = fnameroot+str(i)+'Hz'+'.txt'
-            fpath = os.path.join(current_path,fname)
+            #fpath = os.path.join(current_path,fname)
+            fpath = os.path.join(sample.fd_entry.get(),fname)
+            
             if not os.path.exists(fpath):
                 f = open(fpath,'w')
                 np.savetxt(f, header_row, fmt='%5s' ,delimiter='\t',comments='')
@@ -1126,11 +997,13 @@ def NC_savedata_Continuous(**kwargs):
     elif meaStatus == 'End':
         for i in freq_union:              
             fname = fnameroot+str(i)+'Hz'+'.txt'
-            fpath = os.path.join(current_path,fname)
+            #fpath = os.path.join(current_path,fname)
+            fpath = os.path.join(sample.fd_entry.get(),fname)
             content = np.genfromtxt(fpath,delimiter='\t',dtype=float)[3:]
             arrTemp = content[:,0]
             fnameWithTempRange = fnameroot+str(i)+'Hz_'+ '%sK-%sK' %(arrTemp[0],arrTemp[-1]) +'.txt'
-            fpathWithTempRange = os.path.join(current_path,fnameWithTempRange)
+            #fpathWithTempRange = os.path.join(current_path,fnameWithTempRange)
+            fpathWithTempRange = os.path.join(sample.fd_entry.get(),fnameWithTempRange)
             os.rename(r'%s' %fpath, r'%s' %fpathWithTempRange)
 	
 def NC_stablised_measure():
@@ -1415,8 +1288,8 @@ def	NC_ActionsInit(Frame):
 if __name__ == "__main__":
 	current_path = os.path.dirname(__file__)
 	root = Tk()
-	#root.geometry("1280x720")
-	root.geometry("1600x900")
+	root.geometry("1760x990")
+	#root.geometry("1600x900")
 	root.title('Novocontrol Controlor')
 	plt.ion()						# enable automatic update plots from plt 
 
