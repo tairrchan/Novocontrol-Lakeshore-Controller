@@ -386,32 +386,32 @@ def NC_InfoInit(Frame):
     samp_na = Label(Frame, text = 'Sample name')
     samp_na.grid(row=0,column=0)
     samp_e = Entry(Frame,width=20,borderwidth=2)
-    #samp_e.insert(END, 'Lambdatype-S1_')
-    samp_e.insert(END, 'MAPI_c-axis')
+    samp_e.insert(END, 'DAC_Opencompen')
+    #samp_e.insert(END, 'MAPI-S2_c-axis')
     samp_e.grid(row=1,column=0)
     setattr(sample,'name_entry',samp_e)
 
     len_na = Label(Frame, text = 'Separation (micron)')
     len_na.grid(row=0,column=1)
     len_e = Entry(Frame,width=10,borderwidth=2)
-    #len_e.insert(END, '20')
-    len_e.insert(END, '2000')
+    len_e.insert(END, '20')
+    #len_e.insert(END, '2300')
     len_e.grid(row=1,column=1)
     setattr(sample,'length_entry',len_e)
 
     wid_na = Label(Frame, text = 'Width (micron)')
     wid_na.grid(row=0,column=2)
     wid_e = Entry(Frame,width=10,borderwidth=2)
-    #wid_e.insert(END, '100')
-    wid_e.insert(END, '800')
+    wid_e.insert(END, '100')
+    #wid_e.insert(END, '1000')
     wid_e.grid(row=1,column=2)
     setattr(sample,'width_entry',wid_e)
 
     thic_na = Label(Frame, text = 'Thickness (micron)')
     thic_na.grid(row=0,column=3)
     thic_e = Entry(Frame,width=10,borderwidth=2)
-    #thic_e.insert(END, '100')
-    thic_e.insert(END, '1500')
+    thic_e.insert(END, '100')
+    #thic_e.insert(END, '1200')
     thic_e.grid(row=1,column=3)
     setattr(sample,'thickness_entry',thic_e)
 
@@ -773,7 +773,7 @@ def NC_measure():
 		NC.ACfreq = pt
 		NC.print_message("Measurement started. AC freq = %f Hz." %NC.ACfreq)
 		NC.measurement_trigger()
-		NC.check_task_state(interval=1.01/pt)
+		NC.check_task_state(interval=1/pt)
 		[realZ_raw, imgZ_raw, freq, status, ref_mea_status] = NC.return_Z()
 		realZ_raw = float(realZ_raw)
 		imgZ_raw = float(imgZ_raw)
@@ -1141,8 +1141,9 @@ def NC_continuous_measure():
         duration = abs(et_temp - st_temp)/rrate
         textbox.insert(END, "Duration:" + "%.3f minutes\n" %duration)
         timeObj = time.localtime(time.time()+duration*60)
-        textbox.insert(END, "Finish at %d:%d:%d\n" %(timeObj.tm_hour, timeObj.tm_min, timeObj.tm_sec))
+        textbox.insert(END, "Finish at %02d:%02d:%02d\n" %(timeObj.tm_hour, timeObj.tm_min, timeObj.tm_sec))
         textbox.see("end")
+        
 
     def cleartext():
         global textbox
@@ -1330,7 +1331,7 @@ if __name__ == "__main__":
 	NCplotFrame.grid(row=0,column=9, rowspan=9)
 	NCtextboxFrame = LabelFrame(NCFrame,text="Message")
 	NCtextboxFrame.grid(row=8,column=0,columnspan=3)
-	NCtextbox=Text(NCtextboxFrame, wrap=WORD, height=10, width=60)
+	NCtextbox=Text(NCtextboxFrame, wrap=WORD, height=10, width=100)
 	NCtextbox.grid(row=0,column=0)
 	NCplotFrame2 = LabelFrame(NCFrame,text="More graphs")
 	NCplotFrame2.grid(row=9,column=0, columnspan=10, sticky='EW')
