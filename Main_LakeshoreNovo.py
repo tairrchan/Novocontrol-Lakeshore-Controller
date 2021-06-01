@@ -70,6 +70,11 @@ class Curve():
 
 		line, = self._ax.plot(self._xData, self._yData, marker=(kwargs.get("marker","o")))
 		self._curve = line
+
+	def clear(self):
+		#self._ax.cla()
+		self._xData = np.empty(0)
+		self._yData = np.empty(0)
 			
 
 class Vari():	#create empty class for storing instances
@@ -125,218 +130,262 @@ def AddPlot(Curve_object,**kwargs):
 	Curve_object._ax.set_ylim(0.99*kwargs.get('y_range')[0],1.01*kwargs.get('y_range')[1])
 	
 				
-def LS_EntriesInit(Frame):
-		global LSvars,channel,hrange,ramprate,rampmode,prop,inte,deri,setpt,nowtemp,houtput,dtemp_threshold,tempsd_threshold,nopts_stable
+def LS_EntriesInit(Frame, LSdevice_modelNo):
+		global LSvars,channel,inputcurve,hrange,ramprate,rampmode,prop,inte,deri,setpt,nowtemp,houtput,dtemp_threshold,tempsd_threshold,nopts_stable
 		
 		LSvars = []
 		
 		channel = LSvari()
-		setattr(channel,'name','Moniter\nchannel')
-		ch_na = Label(Frame, text = channel.name)
-		ch_na.grid(row=0,column=0)
+		setattr(channel,'name', 'channel')
+		ch_na = Label(Frame, text = 'Moniter channel')
+		ch_na.grid(row=3,column=0)
 		setattr(channel,'value',LS.channel)
 		ch_e = StringVar()
 		ch_e.set(channel.value)
 		ch_eh = OptionMenu(Frame,ch_e,'A','B')
-		ch_eh.grid(row=0,column=1)
+		ch_eh.grid(row=3,column=1)
 		setattr(channel,'entry',ch_e)
 		ch_o = Label(Frame, text = LS.channel, width=8, relief=SUNKEN)
-		ch_o.grid(row=0,column=2)
+		ch_o.grid(row=3,column=2)
 		setattr(channel,'olabel',ch_o)
 		LSvars.append(channel)
 		
+		inputcurve = LSvari()
+		setattr(inputcurve,'name','inputcurve')
+		ic_na = Label(Frame, text = 'Input curve no.')
+		ic_na.grid(row=4,column=0)
+		setattr(inputcurve,'value',LS.inputcurve)
+		ic_e = StringVar()
+		ic_e.set(inputcurve.value)
+		setattr(inputcurve,'entry',ic_e)
+		if LSdevice_modelNo == '340':
+			if channel.value == 'A':
+				ic_eh = OptionMenu(Frame,ic_e,'35 [MAGNO+Amb;Cernox]','36 [DAC;Silicon]')
+			elif channel.value == 'B':
+				ic_eh = OptionMenu(Frame,ic_e,'42 [MAGNO;Cernox]')
+		elif LSdevice_modelNo == '336':
+			ic_eh = OptionMenu(Frame,ic_e,'1','2')
+		ic_eh.grid(row=4,column=1)
+		setattr(inputcurve,'optionmenu',ic_eh)
+		ic_o = Label(Frame, text = LS.inputcurve, width=8, relief=SUNKEN)
+		ic_o.grid(row=4,column=2)
+		setattr(inputcurve,'olabel',ic_o)
+		LSvars.append(inputcurve)
+		
+		
+		
 		hrange = LSvari()
-		setattr(hrange,'name','Heater\nrange')
-		hr_na = Label(Frame, text = hrange.name)
-		hr_na.grid(row=1,column=0)
+		setattr(hrange,'name','hrange')
+		hr_na = Label(Frame, text = 'Heater range')
+		hr_na.grid(row=5,column=0)
 		setattr(hrange,'value',LS.hrange)
 		hr_e = StringVar()
 		hr_e.set(hrange.value)
 		hr_eh = OptionMenu(Frame,hr_e,'OFF', '2.5mW', '25mW', '250mW', '2.5W', '25W')
-		hr_eh.grid(row=1,column=1)
+		setattr(hrange,'optionmenu',hr_eh)
+		hr_eh.grid(row=5,column=1)
 		setattr(hrange,'entry',hr_e)
 		hr_o = Label(Frame, text = LS.hrange, width=8, relief=SUNKEN)
-		hr_o.grid(row=1,column=2)
+		hr_o.grid(row=5,column=2)
 		setattr(hrange,'olabel',hr_o)
 		LSvars.append(hrange)
 		
 		ramprate = LSvari()
-		setattr(ramprate,'name','Ramprate (K/min)')
-		rr_na = Label(Frame, text = ramprate.name)
-		rr_na.grid(row=2,column=0)
+		setattr(ramprate,'name','ramprate')
+		rr_na = Label(Frame, text = 'Ramprate (K/min)')
+		rr_na.grid(row=6,column=0)
 		setattr(ramprate,'value',LS.ramprate)
 		rr_e = Entry(Frame,width=10,borderwidth=2)
 		rr_e.insert(END, LS.ramprate)
-		rr_e.grid(row=2,column=1)
+		rr_e.grid(row=6,column=1)
 		setattr(ramprate,'entry',rr_e)
 		rr_o = Label(Frame, text = LS.ramprate, width=8, relief=SUNKEN)
-		rr_o.grid(row=2,column=2)
+		rr_o.grid(row=6,column=2)
 		setattr(ramprate,'olabel',rr_o)
 		LSvars.append(ramprate)
 		
 		rampmode = LSvari()
-		setattr(rampmode,'name','Rampmode')
-		rmo_na = Label(Frame, text = rampmode.name)
-		rmo_na.grid(row=3,column=0)
+		setattr(rampmode,'name','rampmode')
+		rmo_na = Label(Frame, text = 'Rampmode')
+		rmo_na.grid(row=7,column=0)
 		setattr(rampmode,'value',LS.rampmode)
 		rmo_e = StringVar()
 		rmo_e.set(LS.rampmode)
 		rmo_eh = Checkbutton(Frame,variable=rmo_e,onvalue='1',offvalue='0')
-		rmo_eh.grid(row=3,column=1)
+		rmo_eh.grid(row=7,column=1)
 		setattr(rampmode,'entry',rmo_e)
 		rmo_o = Label(Frame, text = LS.rampmode, width=8, relief=SUNKEN)
-		rmo_o.grid(row=3,column=2)
+		rmo_o.grid(row=7,column=2)
 		setattr(rampmode,'olabel',rmo_o)
 		LSvars.append(rampmode)
 		
 		prop = LSvari()
-		setattr(prop,'name','Proportional (gain)\n[0.1 - 1000]')
-		p_na = Label(Frame, text = prop.name)
-		p_na.grid(row=4,column=0)
+		setattr(prop,'name','prop')
+		p_na = Label(Frame, text = 'Proportional (gain)\n[0.1 - 1000]')
+		p_na.grid(row=8,column=0)
 		setattr(prop,'value',LS.P)
 		p_e = Entry(Frame,width=10,borderwidth=2)
 		p_e.insert(END, LS.P)
-		p_e.grid(row=4,column=1)
+		p_e.grid(row=8,column=1)
 		setattr(prop,'entry',p_e)
 		p_o = Label(Frame, text = LS.P, width=8, relief=SUNKEN)
-		p_o.grid(row=4,column=2)
+		p_o.grid(row=8,column=2)
 		setattr(prop,'olabel',p_o)
 		LSvars.append(prop)
 		
 		inte = LSvari()
-		setattr(inte,'name','Integral (reset)\n[0.1 - 1000]')
-		i_na = Label(Frame, text = inte.name)
-		i_na.grid(row=5,column=0)
+		setattr(inte,'name','inte')
+		i_na = Label(Frame, text = 'Integral (reset)\n[0.1 - 1000]')
+		i_na.grid(row=9,column=0)
 		setattr(inte,'value',LS.I)
 		i_e = Entry(Frame,width=10,borderwidth=2)
 		i_e.insert(END, LS.I)
-		i_e.grid(row=5,column=1)
+		i_e.grid(row=9,column=1)
 		setattr(inte,'entry',i_e)
 		i_o = Label(Frame, text = LS.I, width=8, relief=SUNKEN)
-		i_o.grid(row=5,column=2)
+		i_o.grid(row=9,column=2)
 		setattr(inte,'olabel',i_o)
 		LSvars.append(inte)
 		
 		deri = LSvari()
-		setattr(deri,'name','Derivative (rate)\n[0.1 - 1000]')
-		d_na = Label(Frame, text = deri.name)
-		d_na.grid(row=6,column=0)
+		setattr(deri,'name','deri')
+		d_na = Label(Frame, text = 'Derivative (rate)\n[0.1 - 1000]')
+		d_na.grid(row=10,column=0)
 		setattr(deri,'value',LS.D)
 		d_e = Entry(Frame,width=10,borderwidth=2)
 		d_e.insert(END, LS.D)
-		d_e.grid(row=6,column=1)
+		d_e.grid(row=10,column=1)
 		setattr(deri,'entry',d_e)
 		d_o = Label(Frame, text = LS.D, width=8, relief=SUNKEN)
-		d_o.grid(row=6,column=2)
+		d_o.grid(row=10,column=2)
 		setattr(deri,'olabel',d_o)
 		LSvars.append(deri)
 		
 		
 		setpt = LSvari()
-		setattr(setpt,'name','Setpoint (K)')
-		sp_na = Label(Frame, text = setpt.name)
-		sp_na.grid(row=0,column=3)
+		setattr(setpt,'name', 'setpt')
+		sp_na = Label(Frame, text = 'Setpoint (K)')
+		sp_na.grid(row=3,column=3)
 		setattr(setpt,'value',LS.setpoint)
 		sp_e = Entry(Frame,width=10,borderwidth=2)
 		sp_e.insert(END, LS.setpoint)
-		sp_e.grid(row=0,column=4)
+		sp_e.grid(row=3,column=4)
 		setattr(setpt,'entry',sp_e)
 		sp_o = Label(Frame, text = LS.setpoint, width=8, relief=SUNKEN)
-		sp_o.grid(row=0,column=5)
+		sp_o.grid(row=3,column=5)
 		setattr(setpt,'olabel',sp_o)
 		LSvars.append(setpt)
 		
 		nowtemp = LSvari()
-		setattr(nowtemp,'name','Current temperature (K)')
-		nt_na = Label(Frame, text = nowtemp.name)
-		nt_na.grid(row=1,column=3,columnspan=2)
+		setattr(nowtemp,'name', 'nowtemp')
+		nt_na = Label(Frame, text = 'Current temperature (K)')
+		nt_na.grid(row=4,column=3,columnspan=2)
 		setattr(nowtemp,'value',LS.nowtemp)
 		nt_o = Label(Frame, text = LS.nowtemp, width=8, relief=SUNKEN)
-		nt_o.grid(row=1,column=5)
+		nt_o.grid(row=4,column=5)
 		setattr(nowtemp,'olabel',nt_o)
 		LSvars.append(nowtemp)
 		
 		houtput = LSvari()
-		setattr(houtput,'name','Heater output (%)')
-		ho_na = Label(Frame, text = houtput.name)
-		ho_na.grid(row=2,column=3,columnspan=2)
+		setattr(houtput,'name', 'houtput')
+		ho_na = Label(Frame, text = 'Heater output (%)')
+		ho_na.grid(row=5,column=3,columnspan=2)
 		setattr(houtput,'value',LS.houtput)
 		ho_o = Label(Frame, text = LS.houtput, width=8, relief=SUNKEN)
-		ho_o.grid(row=2,column=5)
+		ho_o.grid(row=5,column=5)
 		setattr(houtput,'olabel',ho_o)
 		LSvars.append(houtput)
 		
 		dtemp_threshold = LSvari()
-		setattr(dtemp_threshold,'name','delta T (K)')
-		dt_na = Label(Frame, text = dtemp_threshold.name)
-		dt_na.grid(row=4,column=3)
+		setattr(dtemp_threshold,'name', 'dtemp_threshold')
+		dt_na = Label(Frame, text = 'delta T (K)')
+		dt_na.grid(row=8,column=3)
 		#setattr(dtemp_threshold,'value',0.5)
 		dt_e = Entry(Frame,width=10,borderwidth=2)
 		dt_e.insert(END, 0.05)
-		dt_e.grid(row=4,column=4)
+		dt_e.grid(row=8,column=4)
 		setattr(dtemp_threshold,'entry',dt_e)
 		dt_o = Label(Frame, text = '', width=8, relief=SUNKEN)
-		dt_o.grid(row=4,column=5)
+		dt_o.grid(row=8,column=5)
 		setattr(dtemp_threshold,'olabel',dt_o)
 		
 		tempsd_threshold = LSvari()
-		setattr(tempsd_threshold,'name','Temp S.D.')
-		tsd_na = Label(Frame, text = tempsd_threshold.name)
-		tsd_na.grid(row=5,column=3)
+		setattr(tempsd_threshold,'name', 'tempsd_threshold' )
+		tsd_na = Label(Frame, text = 'Temp S.D.')
+		tsd_na.grid(row=9,column=3)
 		tsd_e = Entry(Frame,width=10,borderwidth=2)
 		tsd_e.insert(END, 9e-3)
-		tsd_e.grid(row=5,column=4)
+		tsd_e.grid(row=9,column=4)
 		setattr(tempsd_threshold,'entry',tsd_e)
 		tsd_o = Label(Frame, text = '', width=8, relief=SUNKEN)
-		tsd_o.grid(row=5,column=5)
+		tsd_o.grid(row=9,column=5)
 		setattr(tempsd_threshold,'olabel',tsd_o)
 		
 		nopts_stable = LSvari()
-		setattr(nopts_stable,'name','No. pts.\nfor check')
-		nps_na = Label(Frame, text = nopts_stable.name)
-		nps_na.grid(row=6,column=3)
+		setattr(nopts_stable,'name', 'nopts_stable')
+		nps_na = Label(Frame, text = 'No. pts.\nfor check')
+		nps_na.grid(row=10,column=3)
 		nps_e = Entry(Frame,width=10,borderwidth=2)
 		nps_e.insert(END, 30)
-		nps_e.grid(row=6,column=4)
+		nps_e.grid(row=10,column=4)
 		setattr(nopts_stable,'entry',nps_e)
 		nps_o = Label(Frame, text = '', width=8, relief=SUNKEN)
-		nps_o.grid(row=6,column=5)
+		nps_o.grid(row=10,column=5)
 		setattr(nopts_stable,'olabel',nps_o)
 		
 
 def LS_update():
 	global xData, yData, start_time
+	
+	def updateOptionMenu(optionmenu, optionmenu_variable, options):
+		menu = optionmenu["menu"]
+		menu.delete(0, 'end')
+		for opt in options:
+			menu.add_command(label=opt,command=lambda: optionmenu_variable.set(opt))
+		
+	
 	for var in LSvars:
 		if hasattr(var, 'entry'):
-			val_cp = var.value
+			val_cp = var.value			
 			var.value = var.entry.get()
+			if var.name == 'inputcurve':
+				var.value = re.search(r'[0-9]+', var.value).group(0) #extract the number from the first index
 			if val_cp != var.value:
-				if var == channel:
-					LS.channel = var.value
-				elif var == hrange:
-					LS.hrange = var.value
-				elif var == rampmode:
-					LS.rampmode = var.value
-				elif var == ramprate:
-					LS.ramprate = var.value
-				elif var == setpt:
-					LS.setpoint = var.value
-				elif var == prop:
-					LS.P = var.value
-				elif var == inte:
-					LS.I = var.value
-				elif var == deri:
-					LS.D = var.value
+				if var.name == 'channel':
+					LS.channel = channel.value
+					channel.olabel.config(text = LS.channel)
+					updateOptionMenu(inputcurve.optionmenu, inputcurve.entry, LS.incrvMenu)
+					inputcurve.value = LS.inputcurve
+					inputcurve.entry.set(inputcurve.value)
+					inputcurve.olabel.config(text = LS.inputcurve)
+				elif var.name == 'inputcurve':
+					LS.inputcurve = inputcurve.value
+					inputcurve.entry.set(inputcurve.value)
+					inputcurve.olabel.config(text = LS.inputcurve)
+				elif var.name == 'hrange':
+					LS.hrange = hrange.value
+					hrange.olabel.config(text = LS.hrange)
+				elif var.name == 'rampmode':
+					LS.rampmode = rampmode.value
+					rampmode.olabel.config(text = LS.rampmode)
+					LS.ramprate = ramprate.value
+					ramprate.olabel.config(text = LS.ramprate)
+				elif var.name == 'ramprate':
+					LS.ramprate = ramprate.value
+					ramprate.olabel.config(text = LS.ramprate)
+				elif var.name == 'setpt':
+					LS.setpoint = setpt.value
+				elif var.name == 'prop':
+					LS.P = prop.value
+					prop.olabel.config(text = LS.P)
+				elif var.name == 'inte':
+					LS.I = inte.value
+					inte.olabel.config(text = LS.I)
+				elif var.name == 'deri':
+					LS.D = deri.value
+					deri.olabel.config(text = LS.D)
 		
-	channel.olabel.config(text = LS.channel)
-	hrange.olabel.config(text = LS.hrange)
-	[rmode,rrate] = [LS.rampmode, LS.ramprate]
-	ramprate.olabel.config(text = rrate)
-	rampmode.olabel.config(text = rmode)
-	[P,I,D] = [LS.P, LS.I, LS.D]
-	prop.olabel.config(text = P)
-	inte.olabel.config(text = I)
-	deri.olabel.config(text = D)
+		
 	setpt.olabel.config(text = LS.setpoint)
 	nowtemp.value = LS.nowtemp
 	LS_Curve._yData = np.append(LS_Curve._yData, nowtemp.value)
@@ -386,7 +435,7 @@ def NC_InfoInit(Frame):
     samp_na = Label(Frame, text = 'Sample name')
     samp_na.grid(row=0,column=0)
     samp_e = Entry(Frame,width=20,borderwidth=2)
-    samp_e.insert(END, 'DAC_Opencompen')
+    samp_e.insert(END, 'HansPurple-S2')
     #samp_e.insert(END, 'MAPI-S2_c-axis')
     samp_e.grid(row=1,column=0)
     setattr(sample,'name_entry',samp_e)
@@ -394,7 +443,7 @@ def NC_InfoInit(Frame):
     len_na = Label(Frame, text = 'Separation (micron)')
     len_na.grid(row=0,column=1)
     len_e = Entry(Frame,width=10,borderwidth=2)
-    len_e.insert(END, '20')
+    len_e.insert(END, '650')
     #len_e.insert(END, '2300')
     len_e.grid(row=1,column=1)
     setattr(sample,'length_entry',len_e)
@@ -402,7 +451,7 @@ def NC_InfoInit(Frame):
     wid_na = Label(Frame, text = 'Width (micron)')
     wid_na.grid(row=0,column=2)
     wid_e = Entry(Frame,width=10,borderwidth=2)
-    wid_e.insert(END, '100')
+    wid_e.insert(END, '250')
     #wid_e.insert(END, '1000')
     wid_e.grid(row=1,column=2)
     setattr(sample,'width_entry',wid_e)
@@ -410,7 +459,7 @@ def NC_InfoInit(Frame):
     thic_na = Label(Frame, text = 'Thickness (micron)')
     thic_na.grid(row=0,column=3)
     thic_e = Entry(Frame,width=10,borderwidth=2)
-    thic_e.insert(END, '100')
+    thic_e.insert(END, '150')
     #thic_e.insert(END, '1200')
     thic_e.grid(row=1,column=3)
     setattr(sample,'thickness_entry',thic_e)
@@ -598,11 +647,18 @@ def Data_compensation(R_raw, X_raw):
         B_o = B_open[clos_freq_idx]
         
     elif CP.open_entry.get() == 'DAC+MAGNO':
-        opendirname = os.path.join(compen_dir,'DAC+MAGNO_Opencompensation 20210415')
-        compen_tlist = [294,290,280,260,240,220,200,180,160,140,120,100,80,60,50,40,30,25]
+        #opendirname = os.path.join(compen_dir,'DAC+MAGNO_Opencompensation 20210415')
+        #compen_tlist = [294,290,280,260,240,220,200,180,160,140,120,100,80,60,50,40,30,25]
+        #compentemp = find_closest(compen_tlist,t)[0];
+        #compenfilename = 'DAC+MAGNO_' + str(compentemp) + 'K.txt'
+        #openfilepath = os.path.join(opendirname,compenfilename)
+        opendirname = os.path.join(compen_dir,'DAC+MAGNO_Opencompensation 20210527')
+        compen_tlist = np.arange(2,31)*10
+        compen_tlist = np.insert(compen_tlist,0,12)
+        compen_tlist = np.insert(compen_tlist,-1,295)
         compentemp = find_closest(compen_tlist,t)[0];
-        compenfilename = 'DAC+MAGNO_' + str(compentemp) + 'K.txt'
-        openfilepath = os.path.join(opendirname,compenfilename)
+        openfilename = str(compentemp) + 'K.txt'
+        openfilepath = os.path.join(opendirname,openfilename)
         
         header = np.genfromtxt(openfilepath,delimiter='\t',dtype=str)[0]
         header = np.char.strip(header)
@@ -743,10 +799,9 @@ def NC_freqptslist_cal():
 def NC_measure():
 	global arrFreq,arrTemp,arrG,arrB,arrR,arrX,arrC,arrepsr1,arrepsr2,arrcond,arrrho,arrGraw,arrBraw
 	
-	NC_Curve_a._xData = np.empty(0)
-	NC_Curve_a._yData = np.empty(0)
-	NC_Curve_b._xData = np.empty(0)
-	NC_Curve_b._yData = np.empty(0)
+	## CANNOT use NC_Curve_a._ax.cla(), which will erase the curve itself instead of the elements
+	NC_Curve_a.clear()
+	NC_Curve_b.clear()
 
 	NC.DCbias = DCbias.entry.get()
 	NC.DCvolt = float(DCvolt.entry.get())
@@ -1009,7 +1064,6 @@ def NC_savedata_Continuous(**kwargs):
 def NC_stablised_measure():
 	NC_Curve_c._ax.cla()
 	NC_Curve_d._ax.cla()
-	#print("cla passed")
 	NC_Curve_c._ax.set_xlabel('Freq (Hz)')
 	NC_Curve_d._ax.set_xlabel('Freq (Hz)')
 	NC_Curve_c._ax.set_ylabel('epsr1')
@@ -1312,7 +1366,7 @@ if __name__ == "__main__":
 	LSFrame = LabelFrame(root,text="Lakeshore"+LSdevice_modelNo)
 	LSFrame.grid(row=0,column=0)
 	LSparaFrame = LabelFrame(LSFrame,text="Parameters")
-	LSparaFrame.grid(row=0,column=0)
+	LSparaFrame.grid(row=0,column=0,columnspan=3)
 	LSplotFrame = LabelFrame(LSFrame,text="Graphs")
 	LSplotFrame.grid(row=1,column=0)
 
@@ -1336,6 +1390,8 @@ if __name__ == "__main__":
 	NCplotFrame2 = LabelFrame(NCFrame,text="More graphs")
 	NCplotFrame2.grid(row=9,column=0, columnspan=10, sticky='EW')
 	
+	Button(root, text="print CSET", command=lambda: NC.print_message(LS.device.query('CSET? 1').rstrip())).grid(row=9,column=0)
+	
 	Button(root, text="Quit", command=quit).grid(row=0,column=10)
 	Button(root, text="Quit", command=quit).grid(row=10,column=0)
 
@@ -1347,10 +1403,14 @@ if __name__ == "__main__":
 	### Initialise data and control entries
 	DataArray_initialise()
 
-	LS_EntriesInit(LSparaFrame)
+	LS_EntriesInit(LSparaFrame, LSdevice_modelNo)
 	LS_Canvas = Canvas_for_plots(LSplotFrame,width=3,height=3,ncols=1,nrows=1)
 	LS_Curve = Curve(LS_Canvas,0)
 	LS_Canvas.initialise()
+	LS_clearplot_btn = Button(LSFrame, text='Clear', command=LS_Curve.clear)
+	LS_clearplot_btn.grid(row=1,column=1)
+    
+    
 
 	### Initialise graph canvas
 	NC_InfoInit(NCinfoFrame)
