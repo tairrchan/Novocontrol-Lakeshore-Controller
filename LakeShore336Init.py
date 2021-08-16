@@ -1,5 +1,5 @@
 import pyvisa	
-import ResourceManage_R
+import ResourceManage
 
 
 
@@ -117,14 +117,12 @@ class LSall():
 
 if __name__ == "__main__":
 
-	rm = ResourceManage_R.rm_initiate()
-	idn_dict = ResourceManage_R.rm_dict()
+    rm = ResourceManage.rm_initiate()
+    idn_dict = ResourceManage.rm_dict()
 
-	LS = LSall(rm,idn_dict)
-	
-	print(LS.ramprate)
-	LS.ramprate = 3
-	print(LS.ramprate)
+    LS = LSall(rm,idn_dict)
+
+    #print(LS.ramprate)
 
 
 
